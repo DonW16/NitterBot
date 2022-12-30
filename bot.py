@@ -1,9 +1,11 @@
 import os
 import feedparser
+import logging
 import time
 import discord
 import sqlite3
 import re
+import asyncio
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -192,7 +194,7 @@ async def run_nitter(ctx):
                 print('Tweet already exists within datebase.')
 
         print('Now sleeping for 5 minutes.')
-        time.sleep(300) # 5 minutes
+        await asyncio.sleep(360) # 5 minutes
         
 client.run(TOKEN)
 sqlite_connection.close()
