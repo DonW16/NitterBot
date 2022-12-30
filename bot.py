@@ -7,11 +7,9 @@ import re
 from discord.ext import commands
 from dotenv import load_dotenv
 
-TIMER = time.sleep(300)
-
 def get_nitter_tweet_rss(url):
 
-    feedparser.USER_AGENT = 'NitterBot 0.0.1'
+    feedparser.USER_AGENT = 'NitterBot 0.0.1 - https://github.com/DonW16/NitterBot'
     rss = feedparser.parse(url[0])
     entries = rss.entries
     
@@ -29,7 +27,6 @@ def get_nitter_tweet_rss(url):
     title = entries[0]['title']
     published = entries[0]['published']
     link = entries[0]['link']
-    
     return author, title, published, link
 
 def select_nitter_profile_sqlite():
@@ -120,7 +117,7 @@ except sqlite3.Error as error:
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = os.getenv('DISCORD_GUILD')
+#GUILD = os.getenv('DISCORD_GUILD')
 client = commands.Bot(command_prefix="|", case_insensitive=True)
 
 @client.event
@@ -182,7 +179,7 @@ async def run_nitter(ctx):
         for p in nitter_profiles:
             tweets = get_nitter_tweet_rss(p)
             try:
-                TIMER
+                
                 insert_nitter_tweets_sqlite(tweets[0], tweets[1], tweets[2], tweets[3], '0')
                 select_tweets = select_nitter_tweets_sqlite()
                 for x in range(0, len(select_tweets)):
@@ -190,8 +187,12 @@ async def run_nitter(ctx):
                     if(select_tweets[x][4] == 0):
                         await ctx.send('%s\n' % (link))
                         update_nitter_tweets_posted(select_tweets[x][3], '1')
+
             except sqlite3.IntegrityError:
                 print('Tweet already exists within datebase.')
 
+        print('Now sleeping for 5 minutes.')
+        time.sleep(300) # 5 minutes
+        
 client.run(TOKEN)
 sqlite_connection.close()
