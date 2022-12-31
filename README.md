@@ -1,5 +1,5 @@
 # NitterBot
-A FOSS Discord bot for the nitter.net service.
+ A FOSS Discord Bot for Twitter using nitter.net.
 
 ## Description
 This bot will post tweets from twitter accounts that you add to NitterBot.
