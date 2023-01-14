@@ -2,6 +2,7 @@ import os
 import feedparser
 import logging
 import time
+import datetime
 import discord
 import sqlite3
 import re
@@ -89,7 +90,8 @@ def check_sqlite_database_exists():
 
 def create_sqlite_database():
     if check_sqlite_database_exists() == True:
-        print('SQLite database already exists, skipping database creation.')
+        datetime_now = datetime.datetime.utcnow()
+        print('%s SQLite database already exists, skipping database creation.' % (datetime_now))
     else:
         try:
             sqlite_connection = sqlite3.connect('database.db')
@@ -102,25 +104,30 @@ def create_sqlite_database():
             count = cursor.execute(sql_query)
 
             sqlite_connection.commit()
-            print('SQlite database has been created!')
+            datetime_now = datetime.datetime.utcnow()
+            print('%s SQlite database has been created!' % (datetime_now))
 
         except sqlite3.Error as error:
-            print('Failed to connect to database.')
+            datetime_now = datetime.datetime.utcnow()
+            print('%s Failed to connect to database.' % (datetime_now))
 
 create_sqlite_database()
 
 try:
     sqlite_connection = sqlite3.connect('database.db')
     cursor = sqlite_connection.cursor() # Is this required?
-    print('Connected to SQLite database.')
+    datetime_now = datetime.datetime.utcnow()
+    print('%s Connected to SQLite database.' % (datetime_now))
 
 except sqlite3.Error as error:
-    print('Failed to connect to database.')
+    datetime_now = datetime.datetime.utcnow()
+    print('%s Failed to connect to database.' % (datetime_now))
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 #GUILD = os.getenv('DISCORD_GUILD')
-client = commands.Bot(command_prefix="|", case_insensitive=True)
+intents = discord.Intents.all()
+client = commands.Bot(command_prefix="|", case_insensitive=True, intents=intents)
 
 @client.event
 async def on_ready():
@@ -128,13 +135,16 @@ async def on_ready():
     #     if guild.name == GUILD:
     #         break
 
-    print(f'{client.user} has connected to Discord!')
-    print(client.user.id)
-    print('Discord.py version: {}'.format(discord.__version__))
+    datetime_now = datetime.datetime.utcnow()
+    print(f'{datetime_now} {client.user} has connected to Discord!')
+    #print(client.user.id)
+    datetime_now = datetime.datetime.utcnow()
+    print('{} Discord.py version: {}'.format(datetime_now, discord.__version__))
 
 @client.command(name='add', help='Add Twitter account to NitterBot.')
 async def add_account(ctx, arg):
-    await ctx.send('Account %s added to NitterBot!' % (arg))
+    datetime_now = datetime.datetime.utcnow()
+    await ctx.send('%s Account %s added to NitterBot!' % (datetime_now, arg))
     
     #Change Twitter URL to nitter via regex.
     filter = regex_twitter_url(arg)
@@ -145,9 +155,11 @@ async def add_account(ctx, arg):
         sql_query = "INSERT INTO nitter_account (nitter_account_url) VALUES (?)"
         count = cursor.execute(sql_query, data)
         sqlite_connection.commit()
+        datetime_now = datetime.datetime.utcnow()
         print('NitterBot as added %s to the database!' % (arg))
     except sqlite3.OperationalError:
-        print('Database is locked.')
+        datetime_now = datetime.datetime.utcnow()
+        print('%s Database is locked.' % (datetime_now))
 
 @client.command(name='remove', help='Remove Twitter account from NitterBot.')
 async def remove_account(ctx, arg):
@@ -155,13 +167,16 @@ async def remove_account(ctx, arg):
         sql_query = "DELETE FROM nitter_account WHERE nitter_account_url = ?"
         count = cursor.executemany(sql_query, arg)
         sqlite_connection.commit()
-        print('NitterBot has removed %s from the database!' % (arg))
+        datetime_now = datetime.datetime.utcnow()
+        print('%s NitterBot has removed %s from the database!' % (arg))
         await ctx.send('Account %s removed from NitterBot!' % (arg))
     except sqlite3.OperationalError:
-        print('Database is locked.')
+        datetime_now = datetime.datetime.utcnow()
+        print('%s Database is locked.' % (datetime_now))
         await ctx.send('Error %s.' % (sqlite3.OperationalError))
     except ValueError:
-        print('%s does not exist within the database.')
+        datetime_now = datetime.datetime.utcnow()
+        print('%s %s does not exist within the database.' % (datetime_now, arg))
 
 @client.command(name='list', help='List followed accounts within database.')
 async def list_account(ctx):
@@ -170,7 +185,8 @@ async def list_account(ctx):
         for p in profiles:
             await ctx.send('%s within database.' % (p))
     except sqlite3.OperationalError:
-        print('Database is locked.')
+        datetime_now = datetime.datetime.utcnow()
+        print('%s Database is locked.' % (datetime_now))
         await ctx.send('Error %s.' % (sqlite3.OperationalError))
 
 @client.command(name='run', help='Run NitterBot to fetch tweets from followed accounts.')
@@ -191,10 +207,12 @@ async def run_nitter(ctx):
                         update_nitter_tweets_posted(select_tweets[x][3], '1')
 
             except sqlite3.IntegrityError:
-                print('Tweet already exists within datebase.')
+                datetime_now = datetime.datetime.utcnow()
+                print('%s Tweet already exists within datebase.' % (datetime_now))
 
-        print('Now sleeping for 5 minutes.')
-        await asyncio.sleep(360) # 5 minutes
+        datetime_now = datetime.datetime.utcnow()
+        print('%s Now sleeping for 5 minutes.' % (datetime_now))
+        await asyncio.sleep(300) # 5 minutes
         
 client.run(TOKEN)
 sqlite_connection.close()
